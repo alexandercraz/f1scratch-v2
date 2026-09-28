@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F1 Scratch — программируй болид</title>
+<link rel="icon" href="logo.png">
+<link rel="stylesheet" href="style2.css">
+</head>
+<body>
+
+<header>
+  <img src="logo.png" alt="F1 Scratch" class="logo" onerror="this.style.display='none'">
+  <h1>F1 SCRATCH</h1>
+
+  <div class="mode-switch">
+    <button id="m2d" class="active" onclick="setMode('2d'); hide3D();">2D</button>
+    <button id="m3d" onclick="setMode('3d'); show3D();">3D</button>
+  </div>
+
+  <select id="teamSel" onchange="changeTeam()">
+    <option value="redbull">Red Bull</option>
+    <option value="ferrari">Ferrari</option>
+    <option value="mercedes">Mercedes</option>
+    <option value="mclaren">McLaren</option>
+    <option value="aston">Aston Martin</option>
+    <option value="alpine">Alpine</option>
+    <option value="williams">Williams</option>
+    <option value="rb">RB (Visa)</option>
+    <option value="sauber">Sauber (Kick)</option>
+    <option value="haas">Haas</option>
+  </select>
+
+  <select id="fieldSel" onchange="changeField()">
+    <option value="baku" selected>🏁 Баку</option>
+    <option value="monaco">🏁 Монако</option>
+    <option value="monza">🏁 Монца</option>
+    <option value="grid">Сетка</option>
+    <option value="maze">Лабиринт</option>
+    <option value="room">Комната</option>
+  </select>
+
+  <button class="run" onclick="runProgram()">▶ Запустить</button>
+  <button class="reset" onclick="resetAll()">⟲ Сброс</button>
+  <button class="save" onclick="saveProgram()">💾 Сохранить</button>
+  <button class="load" onclick="loadProgram()">📂 Загрузить</button>
+
+  <div class="speedo">
+    <span id="speedVal">0</span>
+    <span class="unit">км/ч</span>
+  </div>
+  <div class="timer" id="timer">⏱ 0.00</div>
+</header>
+
+<div class="main">
+
+  <div class="blocks">
+    <h3>ДВИЖЕНИЕ (ММ)</h3>
+    <div class="block motion" onclick="addBlock('forward','d1')">⬆ Вперёд <input type="number" id="d1" value="500" onclick="event.stopPropagation()"> мм</div>
+    <div class="block motion" onclick="addBlock('backward','d2')">⬇ Назад <input type="number" id="d2" value="500" onclick="event.stopPropagation()"> мм</div>
+    <div class="block motion" onclick="addBlock('left','a1')">⬅ Влево <input type="number" id="a1" value="15" onclick="event.stopPropagation()">°</div>
+    <div class="block motion" onclick="addBlock('right','a2')">➡ Вправо <input type="number" id="a2" value="15" onclick="event.stopPropagation()">°</div>
+
+    <h3>СКОРОСТЬ</h3>
+    <div class="block speed" onclick="addBlock('speed','sp')">🚀 Скорость <input type="number" id="sp" value="5" min="1" max="10" onclick="event.stopPropagation()"> / 10</div>
+
+    <h3>УПРАВЛЕНИЕ</h3>
+    <div class="block control" onclick="addBlock('repeat','rp')">🔁 Повторить <input type="number" id="rp" value="4" onclick="event.stopPropagation()"> раз</div>
+    <div class="block control" onclick="addBlock('wait','wt')">⏸ Ждать <input type="number" id="wt" value="1" step="0.1" onclick="event.stopPropagation()"> сек</div>
+
+    <h3>ВИД</h3>
+    <div class="block look" onclick="addBlock('say')">💬 Сказать "Финиш!"</div>
+
+    <h3>СТОП</h3>
+    <div class="block stop" onclick="addBlock('stop')">⛔ Стоп</div>
+  </div>
+
+  <div class="program">
+    <h2>📜 ПРОГРАММА <span class="hint">(значения можно менять прямо здесь)</span></h2>
+    <ul id="list"></ul>
+  </div>
+
+  <div class="stage">
+    <canvas id="cv" width="700" height="600"></canvas>
+    <canvas id="threeCanvas" width="700" height="600" style="display:none;"></canvas>
+    <div class="info" id="info">Нажимай блоки слева, потом ▶ Запустить</div>
+  </div>
+
+</div>
+
+<!-- ===== БОТ ПОДДЕРЖКИ ===== -->
+<div class="bot-button" onclick="toggleBot()">🤖</div>
+<div class="bot-window" id="botWindow">
+  <div class="bot-header">
+    <span>🤖 Помощник F1 Scratch</span>
+    <button onclick="toggleBot()">×</button>
+  </div>
+  <div class="bot-messages" id="botMessages">
+    <div class="bot-msg bot">
+      Привет! Я помогу разобраться. Спроси: «как поставить вперёд?», «что такое скорость?», «как сохранить?»
+    </div>
+  </div>
+  <div class="bot-input">
+    <input type="text" id="botInput" placeholder="Напиши вопрос..." onkeydown="if(event.key==='Enter')sendToBot()">
+    <button onclick="sendToBot()">→</button>
+  </div>
+</div>
+
+<!-- ===== СТРАНИЦА О СОЗДАТЕЛЕ ===== -->
+<div class="about-page" id="aboutPage">
+  <div class="about-card">
+    <button class="close-about" onclick="closeAbout()">×</button>
+    <img src="me.jpg" alt="Создатель" class="about-photo" onerror="this.style.display='none'">
+    <h2>Александр Эйвазов</h2>
+    <p class="about-role">Создатель F1 Scratch</p>
+    <p class="about-text">
+      Привет! Я сделал этот сайт, чтобы ученики и все желающие могли учиться программированию через Формулу-1.
+      Здесь ты собираешь программу из блоков, как в Scratch, и управляешь болидом.
+    </p>
+    <p class="about-contact">
+      📧 Почта для связи: <a href="mailto:sanya.eyvazov@bk.ru">sanya.eyvazov@bk.ru</a>
+    </p>
+  </div>
+</div>
+
+<footer>
+  <a href="#" onclick="openAbout(); return false;">👤 О создателе</a>
+  <a href="mailto:sanya.eyvazov@bk.ru">📧 Поддержка</a>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/meshopt_decoder.module.js"></script>
+<script src="three3d.js"></script> 
+<script src="script2.js"></script>
+</body>
+</html>
+
+</body>
+</html>
